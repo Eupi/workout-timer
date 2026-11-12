@@ -70,7 +70,7 @@ input[type=color]{padding:2px;height:46px}
 .dots{display:flex;gap:10px;justify-content:center;margin-top:22px;min-height:9px}
 .dots i{width:9px;height:9px;border-radius:50%;background:#2a3a34}.dots i.d{background:var(--c)}.dots i.c{background:var(--c);box-shadow:0 0 0 4px color-mix(in srgb,var(--c) 28%,transparent)}
 #sl{font-size:calc(12px*var(--k));letter-spacing:.16em;text-transform:uppercase;color:var(--mut);margin-top:10px;font-weight:700;min-height:1.2em}
-.ctl{display:flex;gap:12px;justify-content:center;align-items:center;padding:14px 16px 8px}
+.ctl{display:flex;gap:12px;justify-content:center;align-items:center;padding:14px 16px calc(28px + env(safe-area-inset-bottom))}
 .ctl button{width:54px;height:54px;border-radius:50%;background:var(--card);border:1px solid var(--line);font-size:22px;color:var(--tx)}
 .ctl #pp{width:auto;height:60px;padding:0 34px;border-radius:999px;background:var(--c);color:#1a0c08;font-weight:800;font-size:19px;border:0;box-shadow:0 0 28px color-mix(in srgb,var(--c) 45%,transparent)}
 #nx{margin:0 16px calc(14px + env(safe-area-inset-bottom));padding:14px 16px;background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:20px;font-size:calc(14px*var(--k))}
@@ -109,7 +109,6 @@ input[type=color]{padding:2px;height:46px}
     <div class="dots" id="dots"></div><div id="sl"></div>
   </div>
   <div class="ctl"><button id="prv" aria-label="Назад">‹</button><button id="pp">Пауза</button><button id="nxt" aria-label="Пропустить">›</button><button id="stp" aria-label="Стоп">✕</button></div>
-  <div id="nx"></div>
 </div>
 
 <div id="dlg"><div class="box"><p id="dm"></p><div class="row"><button class="btn" id="dn">Отмена</button><button class="btn p" id="dy">ОК</button></div></div></div>
@@ -213,11 +212,6 @@ function enter(i,t){
  $('#sl').textContent='Подход '+(si+1)+' из '+p.sets;
  cue[s.t]&&cue[s.t]();
 }
-function info(){
- const st=run.steps,i=run.i,tot=st.reduce((a,x)=>a+x.d,0)*1000;
- const left=Math.max(0,run.end-Date.now())+st.slice(i+1).reduce((a,x)=>a+x.d*1000,0);
- $('#nx').innerHTML=`<div class="tt"><span>Осталось всего</span><b>${fmt(Math.ceil(left/1000))}</b></div><div class="tp"><i style="width:${100-left/tot*100}%"></i></div>`;
-}
 function startRun(){
  const p=JSON.parse(JSON.stringify(cur()));
  run={p,steps:build(p),i:0,pau:null,end:0,start:0,last:null};
@@ -237,7 +231,7 @@ function tick(){
  const s=run.steps[run.i],r=Math.ceil((run.end-now)/1000);
  $('#arc').style.strokeDashoffset=CIRC*Math.min(1,(now-run.start)/(s.d*1000));
  if(r!==run.last){
-  run.last=r;$('#tm').textContent=fmt(r);info();
+  run.last=r;$('#tm').textContent=fmt(r);
   const warn=s.t!=='work'&&r<=run.p.warn;
   $('#run').classList.toggle('warn',warn);
   if(r>=1&&r<=3&&s.d>3)beep(s.t==='work'?660:880,.1,.45);
@@ -246,8 +240,8 @@ function tick(){
 function finish(){
  clearInterval(iv);iv=null;cue.done();
  $('#run').classList.remove('warn');$('#run').style.setProperty('--c','var(--work)');
- $('#ph').textContent='Готово!';$('#tm').textContent='✓';$('#nx').textContent='Тренировка завершена';$('#arc').style.strokeDashoffset=0;
- $('#inf1').textContent='';$('#inf2').textContent='';$('#sub').textContent='';$('#dots').innerHTML='';$('#sl').textContent='';
+ $('#ph').textContent='Готово!';$('#tm').textContent='✓';$('#arc').style.strokeDashoffset=0;
+ $('#inf1').textContent='';$('#inf2').textContent='';$('#sub').textContent='Тренировка завершена';$('#dots').innerHTML='';$('#sl').textContent='';
  run.pau=0;run.done=true;$('#pp').textContent='Закрыть';
  try{wl&&wl.release()}catch(e){}
 }
