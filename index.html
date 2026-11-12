@@ -14,10 +14,10 @@
 <style>
 :root{--work:#ff6b4a;--prep:#f2b544;--rest:#4fc3a1;--k:1;--bg:#0e1512;--card:#15201c;--card2:#1a2722;--line:#25342e;--tx:#f3eee4;--mut:#7f9088;--fd:ui-monospace,"SF Mono",Menlo,monospace;--ff:-apple-system,BlinkMacSystemFont,"SF Pro Rounded",system-ui,sans-serif}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{margin:0;height:100%;background:var(--bg);color:var(--tx);font-family:var(--ff);-webkit-text-size-adjust:100%}
+html,body{margin:0;height:100%;overscroll-behavior:none;background:var(--bg);color:var(--tx);font-family:var(--ff);-webkit-text-size-adjust:100%}
 body{background:radial-gradient(800px 420px at 8% -4%,rgba(255,107,74,.15),transparent 65%) no-repeat,var(--bg);padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
 .view{display:none;min-height:100%}.view.on{display:block}
-html.inrun,html.inrun body{background:#0b100e}
+html.inrun,html.inrun body{background:#0b100e;overflow:hidden}
 button,input,select{font:inherit;color:inherit}button{border:0;cursor:pointer}
 .wrap{max-width:1000px;margin:0 auto;padding:18px 16px 130px}
 .hd{display:flex;align-items:center;gap:14px;margin-bottom:18px}
@@ -75,7 +75,7 @@ input[type=color]{padding:2px;height:46px}
 .ctl #pp{width:auto;height:60px;padding:0 34px;border-radius:999px;background:var(--c);color:#1a0c08;font-weight:800;font-size:19px;border:0;box-shadow:0 0 28px color-mix(in srgb,var(--c) 45%,transparent)}
 #nx{margin:0 16px calc(14px + env(safe-area-inset-bottom));padding:14px 16px;background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:20px;font-size:calc(14px*var(--k))}
 .tt{display:flex;justify-content:space-between;align-items:baseline;color:var(--mut);font-size:.85em}.tt b{font-family:var(--fd);font-size:1.6em;color:var(--tx);font-weight:500}
-.tp{height:6px;background:rgba(255,255,255,.1);border-radius:6px;margin:10px 0 10px;overflow:hidden}.tp i{display:block;height:100%;background:var(--c);border-radius:6px}
+.tp{height:10px;background:rgba(255,255,255,.1);border-radius:10px;margin:12px 0 2px;overflow:hidden}.tp i{display:block;height:100%;background:var(--c);border-radius:10px}
 .up{display:flex;align-items:center;gap:10px;padding:5px 0;color:#c9d2cc}.up s{width:8px;height:8px;border-radius:50%;flex:none}.up span{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.up em{font-style:normal;font-family:var(--fd);color:var(--mut)}
 @media(orientation:landscape) and (max-height:520px){.rw{--d:min(64vh,46vw)}.dots,#sl{display:none}.top{padding-top:8px}.ctl{padding:6px}#nx{display:none}}
 #dlg{position:fixed;inset:0;z-index:50;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;padding:24px}#dlg.on{display:flex}
@@ -198,7 +198,9 @@ document.addEventListener('visibilitychange',()=>{if(document.visibilityState===
 
 /* run */
 let run=null,iv=null;
-function show(v){document.documentElement.classList.toggle('inrun',v==='run');document.querySelectorAll('.view').forEach(x=>x.classList.toggle('on',x.id===v))}
+function fit(){const r=$('#run');if(!(navigator.standalone||matchMedia('(display-mode: standalone)').matches)){r.style.height='';return}const a=Math.max(screen.width,screen.height),b=Math.min(screen.width,screen.height);r.style.height=Math.max(innerHeight,innerHeight>innerWidth?a:b)+'px'}
+addEventListener('resize',fit);
+function show(v){document.documentElement.classList.toggle('inrun',v==='run');fit();document.querySelectorAll('.view').forEach(x=>x.classList.toggle('on',x.id===v))}
 function color(t){return t==='work'?'var(--work)':t==='rest'?'var(--rest)':'var(--prep)'}
 function enter(i,t){
  run.i=i;run.start=t;const s=run.steps[i],p=run.p;run.end=t+s.d*1000;run.last=null;
@@ -214,8 +216,7 @@ function enter(i,t){
 function info(){
  const st=run.steps,i=run.i,tot=st.reduce((a,x)=>a+x.d,0)*1000;
  const left=Math.max(0,run.end-Date.now())+st.slice(i+1).reduce((a,x)=>a+x.d*1000,0);
- const up=st.slice(i+1,i+4).map(x=>`<div class="up"><s style="background:${color(x.t)}"></s><span>${esc(x.l)}</span><em>${fmt(x.d)}${x.d<60?' с':''}</em></div>`).join('')||'<div class="up"><span>Последний этап</span></div>';
- $('#nx').innerHTML=`<div class="tt"><span>Осталось всего</span><b>${fmt(Math.ceil(left/1000))}</b></div><div class="tp"><i style="width:${100-left/tot*100}%"></i></div>${up}`;
+ $('#nx').innerHTML=`<div class="tt"><span>Осталось всего</span><b>${fmt(Math.ceil(left/1000))}</b></div><div class="tp"><i style="width:${100-left/tot*100}%"></i></div>`;
 }
 function startRun(){
  const p=JSON.parse(JSON.stringify(cur()));
