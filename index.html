@@ -48,7 +48,7 @@ input[type=color]{padding:2px;height:46px}
 .bar{position:fixed;left:0;right:0;bottom:0;padding:14px 16px calc(14px + env(safe-area-inset-bottom));background:linear-gradient(transparent,var(--bg) 40%)}
 .go{display:block;margin:0 auto;width:100%;max-width:360px;padding:18px;border-radius:999px;background:var(--work);color:#2a0f08;font-weight:800;font-size:19px;box-shadow:0 0 30px color-mix(in srgb,var(--work) 40%,transparent)}
 #run{--c:var(--work);position:relative;overflow:hidden;background:#0b100e}
-#run.on{display:flex;flex-direction:column;height:100%}
+#run.on{display:flex;flex-direction:column;position:fixed;inset:0;padding:env(safe-area-inset-top) env(safe-area-inset-right) 0 env(safe-area-inset-left)}
 #run::before{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(60vmax 50vmax at 50% 38%,color-mix(in srgb,var(--c) 22%,transparent),transparent 70%);transition:background .4s}
 #run>*{position:relative}
 #run.warn::before{background:radial-gradient(60vmax 50vmax at 50% 38%,color-mix(in srgb,var(--c) 46%,transparent),transparent 70%);animation:gl .5s ease-in-out infinite alternate}
@@ -72,8 +72,11 @@ input[type=color]{padding:2px;height:46px}
 .ctl{display:flex;gap:12px;justify-content:center;align-items:center;padding:14px 16px 8px}
 .ctl button{width:54px;height:54px;border-radius:50%;background:var(--card);border:1px solid var(--line);font-size:22px;color:var(--tx)}
 .ctl #pp{width:auto;height:60px;padding:0 34px;border-radius:999px;background:var(--c);color:#1a0c08;font-weight:800;font-size:19px;border:0;box-shadow:0 0 28px color-mix(in srgb,var(--c) 45%,transparent)}
-#nx{text-align:center;font-family:var(--fd);font-size:calc(13px*var(--k));color:var(--mut);padding:4px 16px calc(18px + env(safe-area-inset-bottom));min-height:1.5em}
-@media(orientation:landscape) and (max-height:520px){.rw{--d:min(64vh,46vw)}.dots,#sl{display:none}.top{padding-top:8px}.ctl{padding:6px}#nx{padding-bottom:8px}}
+#nx{margin:0 16px calc(14px + env(safe-area-inset-bottom));padding:14px 16px;background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:20px;font-size:calc(14px*var(--k))}
+.tt{display:flex;justify-content:space-between;align-items:baseline;color:var(--mut);font-size:.85em}.tt b{font-family:var(--fd);font-size:1.6em;color:var(--tx);font-weight:500}
+.tp{height:6px;background:rgba(255,255,255,.1);border-radius:6px;margin:10px 0 10px;overflow:hidden}.tp i{display:block;height:100%;background:var(--c);border-radius:6px}
+.up{display:flex;align-items:center;gap:10px;padding:5px 0;color:#c9d2cc}.up s{width:8px;height:8px;border-radius:50%;flex:none}.up span{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.up em{font-style:normal;font-family:var(--fd);color:var(--mut)}
+@media(orientation:landscape) and (max-height:520px){.rw{--d:min(64vh,46vw)}.dots,#sl{display:none}.top{padding-top:8px}.ctl{padding:6px}#nx{display:none}}
 #dlg{position:fixed;inset:0;z-index:50;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;padding:24px}#dlg.on{display:flex}
 #dlg .box{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:20px;max-width:340px;width:100%}#dlg p{margin:0 0 16px;font-size:18px;font-weight:600}
 #dlg .btn.p{background:var(--work);color:#2a0f08;border:0}
@@ -179,9 +182,10 @@ function build(p){
 
 /* audio */
 let ac=null;
-function unlock(){try{ac=ac||new (window.AudioContext||window.webkitAudioContext)();if(ac.state!=='running')ac.resume();
+function silent(){try{const n=800,b=new Uint8Array(44+n),v=new DataView(b.buffer),w=(o,s)=>[...s].forEach((c,i)=>v.setUint8(o+i,c.charCodeAt(0)));w(0,'RIFF');v.setUint32(4,36+n,true);w(8,'WAVEfmt ');v.setUint32(16,16,true);v.setUint16(20,1,true);v.setUint16(22,1,true);v.setUint32(24,8000,true);v.setUint32(28,8000,true);v.setUint16(32,1,true);v.setUint16(34,8,true);w(36,'data');v.setUint32(40,n,true);b.fill(128,44);const a=new Audio(URL.createObjectURL(new Blob([b],{type:'audio/wav'})));a.loop=true;a.play().catch(()=>{});window._sa=a}catch(e){}}
+function unlock(){try{if(navigator.audioSession)navigator.audioSession.type='playback'}catch(e){}if(!window._sa)silent();else window._sa.play().catch(()=>{});try{ac=ac||new (window.AudioContext||window.webkitAudioContext)();if(ac.state!=='running')ac.resume();
  const o=ac.createOscillator(),g=ac.createGain();g.gain.value=0.0001;o.connect(g).connect(ac.destination);o.start();o.stop(ac.currentTime+.05)}catch(e){}}
-function beep(f,d=.15,v=.5,at=0){if(!S.ui.snd||!ac)return;try{const t=ac.currentTime+at,o=ac.createOscillator(),g=ac.createGain();o.type='sine';o.frequency.value=f;
+function beep(f,d=.15,v=.5,at=0){if(!S.ui.snd||!ac)return;if(ac.state!=='running')ac.resume();try{const t=ac.currentTime+at,o=ac.createOscillator(),g=ac.createGain();o.type='sine';o.frequency.value=f;
  g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(v,t+.01);g.gain.exponentialRampToValueAtTime(.001,t+d);o.connect(g).connect(ac.destination);o.start(t);o.stop(t+d+.02)}catch(e){}}
 const cue={work:()=>beep(988,.5,.7),prep:()=>{beep(440,.12);beep(440,.12,.5,.18)},rest:()=>{beep(440,.12);beep(440,.12,.5,.18)},cd:()=>beep(440,.12),
  done:()=>{[784,988,1175,1568].forEach((f,i)=>beep(f,.3,.6,i*.18))}};
@@ -204,8 +208,13 @@ function enter(i,t){
  $('#sub').textContent=s.t==='work'?'Упражнение '+(s.i+1)+' из '+p.ex.length:'';
  $('#dots').innerHTML=Array.from({length:p.sets},(_,k)=>`<i class="${k<si?'d':k===si?'c':''}"></i>`).join('');
  $('#sl').textContent='Подход '+(si+1)+' из '+p.sets;
- const nx=run.steps[i+1];$('#nx').textContent=nx?'далее · '+nx.l+' · '+fmt(nx.d)+(nx.d<60?' с':' мин'):'последний этап';
  cue[s.t]&&cue[s.t]();
+}
+function info(){
+ const st=run.steps,i=run.i,tot=st.reduce((a,x)=>a+x.d,0)*1000;
+ const left=Math.max(0,run.end-Date.now())+st.slice(i+1).reduce((a,x)=>a+x.d*1000,0);
+ const up=st.slice(i+1,i+4).map(x=>`<div class="up"><s style="background:${color(x.t)}"></s><span>${esc(x.l)}</span><em>${fmt(x.d)}${x.d<60?' с':''}</em></div>`).join('')||'<div class="up"><span>Последний этап</span></div>';
+ $('#nx').innerHTML=`<div class="tt"><span>Осталось всего</span><b>${fmt(Math.ceil(left/1000))}</b></div><div class="tp"><i style="width:${100-left/tot*100}%"></i></div>${up}`;
 }
 function startRun(){
  const p=JSON.parse(JSON.stringify(cur()));
@@ -226,7 +235,7 @@ function tick(){
  const s=run.steps[run.i],r=Math.ceil((run.end-now)/1000);
  $('#arc').style.strokeDashoffset=CIRC*Math.min(1,(now-run.start)/(s.d*1000));
  if(r!==run.last){
-  run.last=r;$('#tm').textContent=fmt(r);
+  run.last=r;$('#tm').textContent=fmt(r);info();
   const warn=s.t!=='work'&&r<=run.p.warn;
   $('#run').classList.toggle('warn',warn);
   if(r>=1&&r<=3&&s.d>3)beep(s.t==='work'?660:880,.1,.45);
@@ -240,7 +249,7 @@ function finish(){
  run.pau=0;run.done=true;$('#pp').textContent='Закрыть';
  try{wl&&wl.release()}catch(e){}
 }
-function stop(){clearInterval(iv);iv=null;run=null;try{wl&&wl.release()}catch(e){}show('home')}
+function stop(){clearInterval(iv);iv=null;run=null;window._sa&&window._sa.pause();try{wl&&wl.release()}catch(e){}show('home')}
 $('#go').onclick=startRun;
 $('#pp').onclick=()=>{
  if(!run)return;if(run.done){stop();return}
