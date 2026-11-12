@@ -70,9 +70,9 @@ input[type=color]{padding:2px;height:46px}
 .dots{display:flex;gap:10px;justify-content:center;margin-top:22px;min-height:9px}
 .dots i{width:9px;height:9px;border-radius:50%;background:#2a3a34}.dots i.d{background:var(--c)}.dots i.c{background:var(--c);box-shadow:0 0 0 4px color-mix(in srgb,var(--c) 28%,transparent)}
 #sl{font-size:calc(12px*var(--k));letter-spacing:.16em;text-transform:uppercase;color:var(--mut);margin-top:10px;font-weight:700;min-height:1.2em}
-.ctl{display:flex;gap:10px;justify-content:center;align-items:center;padding:14px 16px 18px}
+.ctl{display:flex;gap:10px;justify-content:center;align-items:center;padding:14px 16px 34px}
 .ctl button{flex:none;width:54px;height:54px;border-radius:50%;background:var(--card);border:1px solid var(--line);font-size:22px;color:var(--tx)}
-.ctl #pp{flex:1 1 auto;max-width:210px;min-width:0;white-space:nowrap;height:60px;padding:0 16px;border-radius:999px;background:var(--c);color:#1a0c08;font-weight:800;font-size:19px;border:0;box-shadow:0 0 28px color-mix(in srgb,var(--c) 45%,transparent)}
+.ctl #pp{flex:1 1 auto;max-width:210px;min-width:0;white-space:nowrap;height:60px;padding:0 16px;border-radius:999px;background:var(--c);color:#1a0c08;font-weight:800;font-size:19px;border:0;box-shadow:0 0 22px color-mix(in srgb,var(--c) 42%,transparent)}
 #nx{margin:0 16px calc(14px + env(safe-area-inset-bottom));padding:14px 16px;background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:20px;font-size:calc(14px*var(--k))}
 .tt{display:flex;justify-content:space-between;align-items:baseline;color:var(--mut);font-size:.85em}.tt b{font-family:var(--fd);font-size:1.6em;color:var(--tx);font-weight:500}
 .tp{height:10px;background:rgba(255,255,255,.1);border-radius:10px;margin:12px 0 2px;overflow:hidden}.tp i{display:block;height:100%;background:var(--c);border-radius:10px}
@@ -94,6 +94,7 @@ input[type=color]{padding:2px;height:46px}
       <div class="grid" style="margin-top:10px"><label class="f">Размер текста <span id="szv"></span><input type="range" id="sz" min="70" max="130" step="5"></label>
       <label class="f">Шрифт цифр<select id="ft"><option value="mono">Моно</option><option value="sys">Системный</option><option value="round">Скруглённый</option><option value="cond">Узкий</option><option value="serif">С засечками</option></select></label></div>
       <label class="f" style="margin-top:10px">Звук<select id="snd"><option value="1">Включён</option><option value="0">Выключен</option></select></label></div>
+    <div class="card"><h2>Резервная копия</h2><div class="row"><button class="btn" id="exp">Экспорт</button><button class="btn" id="imp">Импорт</button></div><div class="sum" style="font-family:var(--ff)">Все тренировки и оформление сохраняются в файл. При импорте можно добавить их к текущим или заменить всё.</div><input type="file" id="fl" accept=".json,application/json" hidden></div>
   </div><div>
     <div class="card"><h2>Упражнения</h2><div id="exs"></div><button class="btn" id="add" style="width:100%;margin-top:6px">+ Упражнение</button><div class="sum" id="sum"></div></div>
     <div class="row"><button class="btn" id="dup">Дублировать</button><button class="btn" id="newp">Новая</button><button class="btn" id="delp">Удалить</button></div>
@@ -111,10 +112,10 @@ input[type=color]{padding:2px;height:46px}
   <div class="ctl"><button id="prv" aria-label="Назад">‹</button><button id="pp">Пауза</button><button id="nxt" aria-label="Пропустить">›</button><button id="stp" aria-label="Стоп">✕</button></div>
 </div>
 
-<div id="dlg"><div class="box"><p id="dm"></p><div class="row"><button class="btn" id="dn">Отмена</button><button class="btn p" id="dy">ОК</button></div></div></div>
+<div id="dlg"><div class="box"><p id="dm"></p><div class="row"><button class="btn" id="dn">Отмена</button><button class="btn" id="dx" style="display:none"></button><button class="btn p" id="dy">ОК</button></div></div></div>
 <script>
 const $=s=>document.querySelector(s);
-function ask(msg,label,cb){$('#dm').textContent=msg;$('#dy').textContent=label||'ОК';$('#dn').style.display=cb?'':'none';if(!cb)$('#dy').textContent='ОК';$('#dlg').classList.add('on');const close=()=>$('#dlg').classList.remove('on');$('#dn').onclick=close;$('#dy').onclick=()=>{close();cb&&cb()}}
+function ask(msg,label,cb,ex){$('#dm').textContent=msg;$('#dy').textContent=label||'ОК';$('#dn').style.display=cb?'':'none';if(!cb)$('#dy').textContent='ОК';$('#dlg').classList.add('on');const close=()=>$('#dlg').classList.remove('on');$('#dn').onclick=close;$('#dy').onclick=()=>{close();cb&&cb()};const x=$('#dx');x.style.display=ex?'':'none';if(ex){x.textContent=ex[0];x.onclick=()=>{close();ex[1]()}}}
 const KEY='workout-timer.v1';
 const mkEx=(n='',d=60,p=null)=>({n,d,p});
 const mkPreset=()=>({id:Date.now()+Math.random(),name:'Новая тренировка',cd:10,sets:3,prep:5,rest:60,warn:5,ex:[mkEx(),mkEx(),mkEx(),mkEx(),mkEx()]});
@@ -256,6 +257,31 @@ $('#nxt').onclick=()=>run&&jump(run.i+1);
 $('#prv').onclick=()=>run&&jump(run.i-1);
 $('#stp').onclick=()=>{if(!run||run.done)stop();else ask('Остановить тренировку?','Остановить',stop)};
 
+/* backup */
+const cleanPreset=p=>{if(!p||!Array.isArray(p.ex)||!p.ex.length)return null;const n=(v,d,m=0)=>{v=parseInt(v,10);return isNaN(v)||v<m?d:v};
+ return{id:Date.now()+Math.random(),name:String(p.name||'Без названия').slice(0,60),cd:n(p.cd,10),sets:n(p.sets,1,1),prep:n(p.prep,5),rest:n(p.rest,60),warn:n(p.warn,5),
+  ex:p.ex.slice(0,100).map(e=>({n:String((e&&e.n)||'').slice(0,60),d:n(e&&e.d,60,1),p:e&&e.p!=null&&e.p!==''?n(e.p,0):null}))}};
+const pKey=p=>JSON.stringify([p.name,p.cd,p.sets,p.prep,p.rest,p.warn,p.ex]);
+$('#exp').onclick=async()=>{
+ const txt=JSON.stringify({app:'workout-timer',v:1,exported:new Date().toISOString(),presets:S.presets,ui:S.ui},null,1),name='workout-timer-'+new Date().toISOString().slice(0,10)+'.json';
+ try{const f=new File([txt],name,{type:'application/json'});if(navigator.canShare&&navigator.canShare({files:[f]})){await navigator.share({files:[f],title:name});return}}catch(e){if(e&&e.name==='AbortError')return}
+ const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([txt],{type:'application/json'}));a.download=name;document.body.appendChild(a);a.click();a.remove();
+};
+$('#imp').onclick=()=>$('#fl').click();
+$('#fl').onchange=async e=>{
+ const f=e.target.files[0];e.target.value='';if(!f)return;
+ let d=null;try{d=JSON.parse(await f.text())}catch(x){}
+ const list=d&&Array.isArray(d.presets)?d.presets.map(cleanPreset).filter(Boolean):[];
+ if(!list.length){ask('Файл не похож на резервную копию таймера');return}
+ const add=()=>{const have=new Set(S.presets.map(pKey)),names=new Set(S.presets.map(p=>p.name));let ok=0,skip=0,first=null;
+  list.forEach(p=>{if(have.has(pKey(p))){skip++;return}if(names.has(p.name))p.name+=' (импорт)';S.presets.push(p);have.add(pKey(p));names.add(p.name);first=first||p;ok++});
+  if(first)S.cur=first.id;save();renderHome();ask('Добавлено тренировок: '+ok+(skip?'. Пропущено повторов: '+skip:'')+'.')};
+ const replace=()=>{S.presets=list;S.cur=list[0].id;const u=d.ui||{};
+  if(/^#[0-9a-f]{6}$/i.test(u.work))S.ui.work=u.work;if(/^#[0-9a-f]{6}$/i.test(u.prep))S.ui.prep=u.prep;if(/^#[0-9a-f]{6}$/i.test(u.rest))S.ui.rest=u.rest;
+  if(u.size>=70&&u.size<=130)S.ui.size=+u.size;if(FONTS[u.font])S.ui.font=u.font;if(u.snd===0||u.snd===1)S.ui.snd=u.snd;
+  save();applyUI();renderHome();ask('Загружено тренировок: '+list.length+'. Прежние заменены.')};
+ ask('В файле тренировок: '+list.length+'. Сейчас в таймере: '+S.presets.length+'. «Добавить» оставит текущие и добавит новые (повторы пропустятся). «Заменить» удалит текущие тренировки и загрузит оформление из файла.','Добавить',add,['Заменить',replace]);
+};
 buildCfg();buildTicks();applyUI();renderHome();
 if('serviceWorker' in navigator&&location.protocol.startsWith('http')){navigator.serviceWorker.register('sw.js').catch(()=>{})}
 </script>
