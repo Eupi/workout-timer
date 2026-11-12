@@ -44,15 +44,15 @@ input[type=color]{padding:2px;height:46px}
 .x{height:44px;width:36px;background:none;color:var(--mut);font-size:22px}
 .btn{padding:13px 16px;border-radius:14px;background:var(--card2);border:1px solid var(--line);font-weight:600;font-size:16px}
 .sum{color:var(--mut);font-size:14px;margin:12px 2px;font-family:var(--fd)}
-.row{display:flex;gap:10px}.row>*{flex:1;min-width:0}
+.row{display:flex;gap:10px}.row>*{flex:1;min-width:0}.row .btn{padding:13px 4px;font-size:15px;white-space:nowrap}
 .clr{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
 .bar{position:fixed;left:0;right:0;bottom:0;padding:14px 16px calc(14px + env(safe-area-inset-bottom));background:linear-gradient(transparent,var(--bg) 40%)}
 .go{display:block;margin:0 auto;width:100%;max-width:360px;padding:18px;border-radius:999px;background:var(--work);color:#2a0f08;font-weight:800;font-size:19px;box-shadow:0 0 30px color-mix(in srgb,var(--work) 40%,transparent)}
 #run{--c:var(--work);position:relative;overflow:hidden;background:#0b100e}
 #run.on{display:flex;flex-direction:column;position:fixed;inset:0;padding:env(safe-area-inset-top) env(safe-area-inset-right) 0 env(safe-area-inset-left)}
-#run::before{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(60vmax 50vmax at 50% 38%,color-mix(in srgb,var(--c) 22%,transparent),transparent 70%);transition:background .4s}
+#run::before{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(85vw 44vh at 50% 36%,color-mix(in srgb,var(--c) 22%,transparent),transparent);transition:background .4s}
 #run>*{position:relative}
-#run.warn::before{background:radial-gradient(60vmax 50vmax at 50% 38%,color-mix(in srgb,var(--c) 46%,transparent),transparent 70%);animation:gl .5s ease-in-out infinite alternate}
+#run.warn::before{background:radial-gradient(85vw 44vh at 50% 36%,color-mix(in srgb,var(--c) 46%,transparent),transparent);animation:gl .5s ease-in-out infinite alternate}
 @keyframes gl{from{opacity:.45}to{opacity:1}}@keyframes ps{to{stroke-width:21px}}
 #run.warn .ar{animation:ps .5s ease-in-out infinite alternate}
 @media(prefers-reduced-motion:reduce){#run.warn::before,#run.warn .ar{animation:none}}
@@ -70,7 +70,7 @@ input[type=color]{padding:2px;height:46px}
 .dots{display:flex;gap:10px;justify-content:center;margin-top:22px;min-height:9px}
 .dots i{width:9px;height:9px;border-radius:50%;background:#2a3a34}.dots i.d{background:var(--c)}.dots i.c{background:var(--c);box-shadow:0 0 0 4px color-mix(in srgb,var(--c) 28%,transparent)}
 #sl{font-size:calc(12px*var(--k));letter-spacing:.16em;text-transform:uppercase;color:var(--mut);margin-top:10px;font-weight:700;min-height:1.2em}
-.ctl{display:flex;gap:10px;justify-content:center;align-items:center;padding:14px 16px calc(10px + env(safe-area-inset-bottom))}
+.ctl{display:flex;gap:10px;justify-content:center;align-items:center;padding:14px 16px 18px}
 .ctl button{flex:none;width:54px;height:54px;border-radius:50%;background:var(--card);border:1px solid var(--line);font-size:22px;color:var(--tx)}
 .ctl #pp{flex:1 1 auto;max-width:210px;min-width:0;white-space:nowrap;height:60px;padding:0 16px;border-radius:999px;background:var(--c);color:#1a0c08;font-weight:800;font-size:19px;border:0;box-shadow:0 0 28px color-mix(in srgb,var(--c) 45%,transparent)}
 #nx{margin:0 16px calc(14px + env(safe-area-inset-bottom));padding:14px 16px;background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:20px;font-size:calc(14px*var(--k))}
@@ -197,9 +197,7 @@ document.addEventListener('visibilitychange',()=>{if(document.visibilityState===
 
 /* run */
 let run=null,iv=null;
-function fit(){const r=$('#run');if(!(navigator.standalone||matchMedia('(display-mode: standalone)').matches)){r.style.height='';return}const a=Math.max(screen.width,screen.height),b=Math.min(screen.width,screen.height);r.style.height=Math.max(innerHeight,innerHeight>innerWidth?a:b)+'px'}
-addEventListener('resize',fit);
-function show(v){document.documentElement.classList.toggle('inrun',v==='run');fit();document.querySelectorAll('.view').forEach(x=>x.classList.toggle('on',x.id===v))}
+function show(v){document.documentElement.classList.toggle('inrun',v==='run');document.querySelectorAll('.view').forEach(x=>x.classList.toggle('on',x.id===v))}
 function color(t){return t==='work'?'var(--work)':t==='rest'?'var(--rest)':'var(--prep)'}
 function enter(i,t){
  run.i=i;run.start=t;const s=run.steps[i],p=run.p;run.end=t+s.d*1000;run.last=null;
