@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Таймер">
+<meta name="theme-color" content="#0e1512">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<title>Таймер тренировок</title>
+<style>
+:root{--work:#ff6b4a;--prep:#f2b544;--rest:#4fc3a1;--k:1;--bg:#0e1512;--card:#15201c;--card2:#1a2722;--line:#25342e;--tx:#f3eee4;--mut:#7f9088;--fd:ui-monospace,"SF Mono",Menlo,monospace;--ff:-apple-system,BlinkMacSystemFont,"SF Pro Rounded",system-ui,sans-serif}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--tx);font-family:var(--ff);-webkit-text-size-adjust:100%}
+body{background:radial-gradient(800px 420px at 8% -4%,rgba(255,107,74,.15),transparent 65%) no-repeat,var(--bg);padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
+.view{display:none;min-height:100%}.view.on{display:block}
+button,input,select{font:inherit;color:inherit}button{border:0;cursor:pointer}
+.wrap{max-width:1000px;margin:0 auto;padding:18px 16px 130px}
+.hd{display:flex;align-items:center;gap:14px;margin-bottom:18px}
+.logo{width:48px;height:48px;border-radius:14px;background:var(--card);border:1px solid var(--line);display:grid;place-items:center}
+.hd b{display:block;font-size:22px;letter-spacing:-.01em}.hd small{font-size:11px;letter-spacing:.18em;color:var(--mut);text-transform:uppercase}
+.cols{display:grid;gap:16px}@media(min-width:900px){.cols{grid-template-columns:1fr 1fr;align-items:start}}
+.seg{display:flex;gap:4px;overflow-x:auto;padding:6px;background:var(--card);border:1px solid var(--line);border-radius:999px;margin-bottom:16px}
+.seg button{flex:none;padding:11px 20px;border-radius:999px;background:none;color:var(--mut);font-weight:600;font-size:15px;white-space:nowrap}
+.seg button.on{background:var(--work);color:#2a0f08}
+.card{background:linear-gradient(180deg,var(--card2),var(--card));border:1px solid var(--line);border-radius:22px;padding:18px;margin-bottom:16px}
+.card h2{margin:0 0 12px;font-size:17px}
+.srow{display:flex;justify-content:space-between;align-items:center;padding:9px 0;color:#c9d2cc}
+.st{display:flex;align-items:center;gap:6px}.st button{width:34px;height:34px;border-radius:10px;background:#0e1613;border:1px solid var(--line);font-size:19px}
+.st b{min-width:62px;text-align:center;font-size:20px;line-height:1}.st small{display:block;font-size:10px;letter-spacing:.14em;color:var(--mut);text-transform:uppercase;margin-top:3px;font-weight:600}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+label.f{display:flex;flex-direction:column;gap:5px;font-size:13px;color:var(--mut)}
+input,select{background:#0e1613;border:1px solid var(--line);border-radius:12px;padding:11px 12px;font-size:17px;width:100%;color:var(--tx)}
+input:focus,select:focus{outline:2px solid var(--work);outline-offset:1px}
+input[type=color]{padding:2px;height:46px}
+.ex{display:grid;grid-template-columns:1fr 74px 74px 36px;gap:8px;align-items:end;padding:12px 0;border-top:1px solid var(--line)}
+.ex:first-child{border-top:0;padding-top:0}
+.ex .nm{grid-column:1/-1;display:flex;gap:8px;align-items:center}
+.ex .nm b{width:26px;height:26px;border-radius:9px;background:var(--line);display:grid;place-items:center;font-size:13px;flex:none}
+.x{height:44px;width:36px;background:none;color:var(--mut);font-size:22px}
+.btn{padding:13px 16px;border-radius:14px;background:var(--card2);border:1px solid var(--line);font-weight:600;font-size:16px}
+.sum{color:var(--mut);font-size:14px;margin:12px 2px;font-family:var(--fd)}
+.row{display:flex;gap:10px}.row>*{flex:1;min-width:0}
+.clr{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.bar{position:fixed;left:0;right:0;bottom:0;padding:14px 16px calc(14px + env(safe-area-inset-bottom));background:linear-gradient(transparent,var(--bg) 40%)}
+.go{display:block;margin:0 auto;width:100%;max-width:360px;padding:18px;border-radius:999px;background:var(--work);color:#2a0f08;font-weight:800;font-size:19px;box-shadow:0 0 30px color-mix(in srgb,var(--work) 40%,transparent)}
+#run{--c:var(--work);position:relative;overflow:hidden;background:#0b100e}
+#run.on{display:flex;flex-direction:column;height:100%}
+#run::before{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(60vmax 50vmax at 50% 38%,color-mix(in srgb,var(--c) 22%,transparent),transparent 70%);transition:background .4s}
+#run>*{position:relative}
+#run.warn::before{background:radial-gradient(60vmax 50vmax at 50% 38%,color-mix(in srgb,var(--c) 46%,transparent),transparent 70%);animation:gl .5s ease-in-out infinite alternate}
+@keyframes gl{from{opacity:.45}to{opacity:1}}@keyframes ps{to{stroke-width:21px}}
+#run.warn .ar{animation:ps .5s ease-in-out infinite alternate}
+@media(prefers-reduced-motion:reduce){#run.warn::before,#run.warn .ar{animation:none}}
+.top{display:flex;justify-content:space-between;gap:12px;padding:16px 22px 0;font-size:calc(14px*var(--k));color:var(--mut);font-weight:600}
+.mid{flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.rw{--d:min(82vw,50vh,540px);width:var(--d);height:var(--d);position:relative}
+.rw svg{width:100%;height:100%;overflow:visible}
+.tr,.ar{fill:none;stroke-width:14}.tr{stroke:rgba(255,255,255,.06)}
+.ar{stroke:var(--c);stroke-linecap:round;stroke-dasharray:1005.31;filter:drop-shadow(0 0 10px color-mix(in srgb,var(--c) 70%,transparent));transition:stroke .4s}
+#tks line{stroke:rgba(255,255,255,.2);stroke-width:2}#tks .b{stroke:rgba(255,255,255,.4);stroke-width:3}
+.ctr{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:0 15%}
+#ph{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:calc(var(--d)*.05*var(--k));letter-spacing:.14em;text-transform:uppercase;color:var(--c);font-weight:700}
+#tm{font-family:var(--fd);font-size:calc(var(--d)*.25*var(--k));font-weight:500;line-height:1.05;letter-spacing:-.04em;white-space:nowrap;font-variant-numeric:tabular-nums}
+#sub{font-size:calc(var(--d)*.04*var(--k));color:var(--mut);min-height:1.2em}
+.dots{display:flex;gap:10px;justify-content:center;margin-top:22px;min-height:9px}
+.dots i{width:9px;height:9px;border-radius:50%;background:#2a3a34}.dots i.d{background:var(--c)}.dots i.c{background:var(--c);box-shadow:0 0 0 4px color-mix(in srgb,var(--c) 28%,transparent)}
+#sl{font-size:calc(12px*var(--k));letter-spacing:.16em;text-transform:uppercase;color:var(--mut);margin-top:10px;font-weight:700;min-height:1.2em}
+.ctl{display:flex;gap:12px;justify-content:center;align-items:center;padding:14px 16px 8px}
+.ctl button{width:54px;height:54px;border-radius:50%;background:var(--card);border:1px solid var(--line);font-size:22px;color:var(--tx)}
+.ctl #pp{width:auto;height:60px;padding:0 34px;border-radius:999px;background:var(--c);color:#1a0c08;font-weight:800;font-size:19px;border:0;box-shadow:0 0 28px color-mix(in srgb,var(--c) 45%,transparent)}
+#nx{text-align:center;font-family:var(--fd);font-size:calc(13px*var(--k));color:var(--mut);padding:4px 16px calc(18px + env(safe-area-inset-bottom));min-height:1.5em}
+@media(orientation:landscape) and (max-height:520px){.rw{--d:min(64vh,46vw)}.dots,#sl{display:none}.top{padding-top:8px}.ctl{padding:6px}#nx{padding-bottom:8px}}
+#dlg{position:fixed;inset:0;z-index:50;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;padding:24px}#dlg.on{display:flex}
+#dlg .box{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:20px;max-width:340px;width:100%}#dlg p{margin:0 0 16px;font-size:18px;font-weight:600}
+#dlg .btn.p{background:var(--work);color:#2a0f08;border:0}
+</style>
+</head>
+<body>
+<div id="home" class="view on"><div class="wrap">
+  <div class="hd"><div class="logo"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="#ff6b4a" stroke-width="2" stroke-linecap="round"><path d="M8 9a4 4 0 0 1 8 0"/><circle cx="12" cy="15" r="6" fill="#ff6b4a" stroke="none"/></svg></div><div><b>Таймер тренировок</b><small>интервалы · подходы</small></div></div>
+  <div class="seg" id="tabs"></div>
+  <div class="cols"><div>
+    <div class="card"><h2>Параметры</h2><label class="f">Название<input id="pn" placeholder="Моя тренировка"></label><div id="cfg" style="margin-top:6px"></div></div>
+    <div class="card"><h2>Оформление</h2>
+      <div class="clr"><label class="f">Упражнение<input type="color" id="cw"></label><label class="f">Подготовка<input type="color" id="cp"></label><label class="f">Отдых<input type="color" id="cr"></label></div>
+      <div class="grid" style="margin-top:10px"><label class="f">Размер текста <span id="szv"></span><input type="range" id="sz" min="70" max="130" step="5"></label>
+      <label class="f">Шрифт цифр<select id="ft"><option value="mono">Моно</option><option value="sys">Системный</option><option value="round">Скруглённый</option><option value="cond">Узкий</option><option value="serif">С засечками</option></select></label></div>
+      <label class="f" style="margin-top:10px">Звук<select id="snd"><option value="1">Включён</option><option value="0">Выключен</option></select></label></div>
+  </div><div>
+    <div class="card"><h2>Упражнения</h2><div id="exs"></div><button class="btn" id="add" style="width:100%;margin-top:6px">+ Упражнение</button><div class="sum" id="sum"></div></div>
+    <div class="row"><button class="btn" id="dup">Дублировать</button><button class="btn" id="newp">Новая</button><button class="btn" id="delp">Удалить</button></div>
+  </div></div>
+</div>
+<div class="bar"><button class="go" id="go">▶ Старт</button></div></div>
+
+<div id="run" class="view">
+  <div class="top"><span id="inf1"></span><span id="inf2"></span></div>
+  <div class="mid">
+    <div class="rw"><svg viewBox="0 0 400 400"><g id="tks"></g><circle class="tr" cx="200" cy="200" r="160"/><circle class="ar" id="arc" cx="200" cy="200" r="160" transform="rotate(-90 200 200)"/></svg>
+      <div class="ctr"><div id="ph"></div><div id="tm">0</div><div id="sub"></div></div></div>
+    <div class="dots" id="dots"></div><div id="sl"></div>
+  </div>
+  <div class="ctl"><button id="prv" aria-label="Назад">‹</button><button id="pp">Пауза</button><button id="nxt" aria-label="Пропустить">›</button><button id="stp" aria-label="Стоп">✕</button></div>
+  <div id="nx"></div>
+</div>
+
+<div id="dlg"><div class="box"><p id="dm"></p><div class="row"><button class="btn" id="dn">Отмена</button><button class="btn p" id="dy">ОК</button></div></div></div>
+<script>
+const $=s=>document.querySelector(s);
+function ask(msg,label,cb){$('#dm').textContent=msg;$('#dy').textContent=label||'ОК';$('#dn').style.display=cb?'':'none';if(!cb)$('#dy').textContent='ОК';$('#dlg').classList.add('on');const close=()=>$('#dlg').classList.remove('on');$('#dn').onclick=close;$('#dy').onclick=()=>{close();cb&&cb()}}
+const KEY='workout-timer.v1';
+const mkEx=(n='',d=60,p=null)=>({n,d,p});
+const mkPreset=()=>({id:Date.now()+Math.random(),name:'Новая тренировка',cd:10,sets:3,prep:5,rest:60,warn:5,ex:[mkEx(),mkEx(),mkEx(),mkEx(),mkEx()]});
+let S;
+try{S=JSON.parse(localStorage.getItem(KEY))}catch(e){}
+if(!S||!S.presets||!S.presets.length){const p=mkPreset();p.name='Гири: круг';S={presets:[p],cur:p.id,ui:{work:'#ff6b4a',prep:'#f2b544',rest:'#4fc3a1',size:100,font:'mono',snd:1}}}
+if(S.ui.work==='#22c55e'&&S.ui.prep==='#f59e0b'&&S.ui.rest==='#3b82f6'){Object.assign(S.ui,{work:'#ff6b4a',prep:'#f2b544',rest:'#4fc3a1'});if(S.ui.font==='sys')S.ui.font='mono'}
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
+const cur=()=>S.presets.find(p=>p.id===S.cur)||S.presets[0];
+const num=(v,d)=>{const n=parseInt(v,10);return isNaN(n)||n<0?d:n};
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const exName=(e,i)=>(e.n||'').trim()||'Упражнение '+(i+1);
+const fmt=s=>s>=60?Math.floor(s/60)+':'+String(s%60).padStart(2,'0'):String(s);
+const FONTS={sys:'-apple-system,BlinkMacSystemFont,"SF Pro Display",system-ui,sans-serif',round:'ui-rounded,"SF Pro Rounded",system-ui,sans-serif',cond:'"Avenir Next Condensed","Arial Narrow",system-ui,sans-serif',mono:'ui-monospace,"SF Mono",Menlo,monospace',serif:'"New York",ui-serif,Georgia,serif'};
+
+function applyUI(){const u=S.ui,r=document.documentElement.style;r.setProperty('--work',u.work);r.setProperty('--prep',u.prep);r.setProperty('--rest',u.rest);r.setProperty('--k',u.size/100);r.setProperty('--fd',FONTS[u.font]||FONTS.mono);
+ $('#cw').value=u.work;$('#cp').value=u.prep;$('#cr').value=u.rest;$('#sz').value=u.size;$('#szv').textContent=u.size+'%';$('#ft').value=u.font;$('#snd').value=u.snd?1:0}
+
+function renderHome(){
+ const p=cur();
+ $('#tabs').innerHTML=S.presets.map(x=>`<button class="${x.id===p.id?'on':''}" data-id="${x.id}">${esc(x.name||'Без названия')}</button>`).join('');
+ $('#pn').value=p.name;CFG.forEach(c=>$('#v-'+c[0]).textContent=p[c[0]]);
+ $('#exs').innerHTML=p.ex.map((e,i)=>`<div class="ex" data-i="${i}">
+  <div class="nm"><b>${i+1}</b><input data-e="n" value="${esc(e.n)}" placeholder="Упражнение ${i+1}"></div>
+  <label class="f">Время, сек<input data-e="d" type="number" inputmode="numeric" min="1" value="${e.d}"></label>
+  <label class="f">Подготовка<input data-e="p" type="number" inputmode="numeric" min="0" value="${e.p==null?'':e.p}" placeholder="${p.prep}"></label>
+  <button class="x" data-del="${i}" aria-label="Удалить">×</button></div>`).join('');
+ sum();
+}
+function sum(){const st=build(cur());const t=st.reduce((a,s)=>a+s.d,0);$('#sum').textContent='Всего: '+Math.floor(t/60)+' мин '+t%60+' с';}
+
+$('#tabs').onclick=e=>{const b=e.target.closest('[data-id]');if(b){S.cur=+b.dataset.id;save();renderHome()}};
+const CFG=[['cd','Старт через','сек',5],['sets','Подходов','',1],['prep','Подготовка','сек',5],['rest','Отдых между подходами','сек',10],['warn','Предупреждать за','сек',1]];
+function buildCfg(){$('#cfg').innerHTML=CFG.map(c=>`<div class="srow"><span>${c[1]}</span><div class="st"><button data-s="${c[0]}" data-d="-${c[3]}" aria-label="Меньше">−</button><b><i id="v-${c[0]}" style="font-style:normal"></i><small>${c[2]||'раз'}</small></b><button data-s="${c[0]}" data-d="${c[3]}" aria-label="Больше">+</button></div></div>`).join('')}
+$('#cfg').onclick=e=>{const b=e.target.closest('[data-s]');if(!b)return;const p=cur(),k=b.dataset.s;p[k]=Math.max(k==='sets'?1:0,p[k]+(+b.dataset.d));save();$('#v-'+k).textContent=p[k];sum()};
+$('#pn').oninput=e=>{const p=cur();p.name=e.target.value;save();$('#tabs .on').textContent=p.name||'Без названия'};
+const CIRC=1005.31;
+function buildTicks(){let h='';for(let k=0;k<60;k++){const a=k*Math.PI/30,b=k%5===0,r1=b?180:185,r2=194;h+=`<line class="${b?'b':''}" x1="${200+r1*Math.sin(a)}" y1="${200-r1*Math.cos(a)}" x2="${200+r2*Math.sin(a)}" y2="${200-r2*Math.cos(a)}"/>`}$('#tks').innerHTML=h}
+$('#exs').oninput=e=>{const row=e.target.closest('.ex');if(!row)return;const x=cur().ex[+row.dataset.i],k=e.target.dataset.e;
+ if(k==='n')x.n=e.target.value;else if(k==='d')x.d=Math.max(1,num(e.target.value,60));else x.p=e.target.value===''?null:num(e.target.value,0);save();sum()};
+$('#exs').onclick=e=>{const b=e.target.closest('[data-del]');if(b&&cur().ex.length>1){cur().ex.splice(+b.dataset.del,1);save();renderHome()}};
+$('#add').onclick=()=>{const p=cur(),l=p.ex[p.ex.length-1];p.ex.push(mkEx('',l?l.d:60));save();renderHome();window.scrollTo(0,document.body.scrollHeight)};
+$('#newp').onclick=()=>{const p=mkPreset();S.presets.push(p);S.cur=p.id;save();renderHome()};
+$('#dup').onclick=()=>{const p=JSON.parse(JSON.stringify(cur()));p.id=Date.now()+Math.random();p.name+=' (копия)';S.presets.push(p);S.cur=p.id;save();renderHome()};
+$('#delp').onclick=()=>{if(S.presets.length<2){ask('Нужна хотя бы одна тренировка');return}ask('Удалить «'+cur().name+'»?','Удалить',()=>{S.presets=S.presets.filter(x=>x.id!==S.cur);S.cur=S.presets[0].id;save();renderHome()})};
+[['cw','work'],['cp','prep'],['cr','rest']].forEach(([id,k])=>$('#'+id).oninput=e=>{S.ui[k]=e.target.value;save();applyUI()});
+$('#sz').oninput=e=>{S.ui.size=+e.target.value;save();applyUI()};
+$('#ft').onchange=e=>{S.ui.font=e.target.value;save();applyUI()};
+$('#snd').onchange=e=>{S.ui.snd=+e.target.value;save()};
+
+/* timeline */
+function build(p){
+ const st=[];
+ if(p.cd>0)st.push({t:'cd',d:p.cd,l:'Приготовиться'});
+ for(let s=0;s<p.sets;s++){
+  p.ex.forEach((e,i)=>{
+   const pd=e.p==null?p.prep:e.p;
+   if(i>0&&pd>0)st.push({t:'prep',d:pd,l:'Подготовка',s,i});
+   st.push({t:'work',d:e.d||60,l:exName(e,i),s,i});
+  });
+  if(s<p.sets-1&&p.rest>0)st.push({t:'rest',d:p.rest,l:'Отдых',s});
+ }
+ return st;
+}
+
+/* audio */
+let ac=null;
+function unlock(){try{ac=ac||new (window.AudioContext||window.webkitAudioContext)();if(ac.state!=='running')ac.resume();
+ const o=ac.createOscillator(),g=ac.createGain();g.gain.value=0.0001;o.connect(g).connect(ac.destination);o.start();o.stop(ac.currentTime+.05)}catch(e){}}
+function beep(f,d=.15,v=.5,at=0){if(!S.ui.snd||!ac)return;try{const t=ac.currentTime+at,o=ac.createOscillator(),g=ac.createGain();o.type='sine';o.frequency.value=f;
+ g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(v,t+.01);g.gain.exponentialRampToValueAtTime(.001,t+d);o.connect(g).connect(ac.destination);o.start(t);o.stop(t+d+.02)}catch(e){}}
+const cue={work:()=>beep(988,.5,.7),prep:()=>{beep(440,.12);beep(440,.12,.5,.18)},rest:()=>{beep(440,.12);beep(440,.12,.5,.18)},cd:()=>beep(440,.12),
+ done:()=>{[784,988,1175,1568].forEach((f,i)=>beep(f,.3,.6,i*.18))}};
+
+/* wake lock */
+let wl=null;
+async function wake(){try{if('wakeLock' in navigator&&run&&!run.pau)wl=await navigator.wakeLock.request('screen')}catch(e){}}
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&run){wake();tick()}});
+
+/* run */
+let run=null,iv=null;
+function show(v){document.querySelectorAll('.view').forEach(x=>x.classList.toggle('on',x.id===v))}
+function color(t){return t==='work'?'var(--work)':t==='rest'?'var(--rest)':'var(--prep)'}
+function enter(i,t){
+ run.i=i;run.start=t;const s=run.steps[i],p=run.p;run.end=t+s.d*1000;run.last=null;
+ $('#run').style.setProperty('--c',color(s.t));
+ $('#ph').textContent=s.l;
+ const si=s.t==='rest'?s.s+1:(s.s||0);
+ $('#inf1').textContent=p.name;$('#inf2').textContent=s.t==='work'?'Упражнение '+(s.i+1)+' из '+p.ex.length:'';
+ $('#sub').textContent=s.t==='work'?'Упражнение '+(s.i+1)+' из '+p.ex.length:'';
+ $('#dots').innerHTML=Array.from({length:p.sets},(_,k)=>`<i class="${k<si?'d':k===si?'c':''}"></i>`).join('');
+ $('#sl').textContent='Подход '+(si+1)+' из '+p.sets;
+ const nx=run.steps[i+1];$('#nx').textContent=nx?'далее · '+nx.l+' · '+fmt(nx.d)+(nx.d<60?' с':' мин'):'последний этап';
+ cue[s.t]&&cue[s.t]();
+}
+function startRun(){
+ const p=JSON.parse(JSON.stringify(cur()));
+ run={p,steps:build(p),i:0,pau:null,end:0,start:0,last:null};
+ if(!run.steps.length)return;
+ unlock();wake();show('run');
+ $('#pp').textContent='Пауза';
+ enter(0,Date.now());tick();
+ clearInterval(iv);iv=setInterval(tick,100);
+}
+function tick(){
+ if(!run||run.pau!=null)return;
+ let now=Date.now();
+ while(now>=run.end){
+  if(run.i+1>=run.steps.length){finish();return}
+  enter(run.i+1,run.end);
+ }
+ const s=run.steps[run.i],r=Math.ceil((run.end-now)/1000);
+ $('#arc').style.strokeDashoffset=CIRC*Math.min(1,(now-run.start)/(s.d*1000));
+ if(r!==run.last){
+  run.last=r;$('#tm').textContent=fmt(r);
+  const warn=s.t!=='work'&&r<=run.p.warn;
+  $('#run').classList.toggle('warn',warn);
+  if(r>=1&&r<=3&&s.d>3)beep(s.t==='work'?660:880,.1,.45);
+ }
+}
+function finish(){
+ clearInterval(iv);iv=null;cue.done();
+ $('#run').classList.remove('warn');$('#run').style.setProperty('--c','var(--work)');
+ $('#ph').textContent='Готово!';$('#tm').textContent='✓';$('#nx').textContent='Тренировка завершена';$('#arc').style.strokeDashoffset=0;
+ $('#inf1').textContent='';$('#inf2').textContent='';$('#sub').textContent='';$('#dots').innerHTML='';$('#sl').textContent='';
+ run.pau=0;run.done=true;$('#pp').textContent='Закрыть';
+ try{wl&&wl.release()}catch(e){}
+}
+function stop(){clearInterval(iv);iv=null;run=null;try{wl&&wl.release()}catch(e){}show('home')}
+$('#go').onclick=startRun;
+$('#pp').onclick=()=>{
+ if(!run)return;if(run.done){stop();return}
+ unlock();
+ if(run.pau==null){run.pau=Math.max(0,run.end-Date.now());$('#pp').textContent='Продолжить';$('#run').classList.remove('warn');try{wl&&wl.release()}catch(e){}}
+ else{const n=Date.now(),d=run.steps[run.i].d*1000;run.start=n-(d-run.pau);run.end=n+run.pau;run.pau=null;$('#pp').textContent='Пауза';wake();tick()}
+};
+function jump(i){if(!run||run.done)return;if(i>=run.steps.length){finish();return}run.pau=null;$('#pp').textContent='Пауза';wake();enter(Math.max(0,i),Date.now());tick()}
+$('#nxt').onclick=()=>run&&jump(run.i+1);
+$('#prv').onclick=()=>run&&jump(run.i-1);
+$('#stp').onclick=()=>{if(!run||run.done)stop();else ask('Остановить тренировку?','Остановить',stop)};
+
+buildCfg();buildTicks();applyUI();renderHome();
+if('serviceWorker' in navigator&&location.protocol.startsWith('http')){navigator.serviceWorker.register('sw.js').catch(()=>{})}
+</script>
+</body>
+</html>
