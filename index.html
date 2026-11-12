@@ -17,6 +17,7 @@
 html,body{margin:0;height:100%;background:var(--bg);color:var(--tx);font-family:var(--ff);-webkit-text-size-adjust:100%}
 body{background:radial-gradient(800px 420px at 8% -4%,rgba(255,107,74,.15),transparent 65%) no-repeat,var(--bg);padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
 .view{display:none;min-height:100%}.view.on{display:block}
+html.inrun,html.inrun body{background:#0b100e}
 button,input,select{font:inherit;color:inherit}button{border:0;cursor:pointer}
 .wrap{max-width:1000px;margin:0 auto;padding:18px 16px 130px}
 .hd{display:flex;align-items:center;gap:14px;margin-bottom:18px}
@@ -197,7 +198,7 @@ document.addEventListener('visibilitychange',()=>{if(document.visibilityState===
 
 /* run */
 let run=null,iv=null;
-function show(v){document.querySelectorAll('.view').forEach(x=>x.classList.toggle('on',x.id===v))}
+function show(v){document.documentElement.classList.toggle('inrun',v==='run');document.querySelectorAll('.view').forEach(x=>x.classList.toggle('on',x.id===v))}
 function color(t){return t==='work'?'var(--work)':t==='rest'?'var(--rest)':'var(--prep)'}
 function enter(i,t){
  run.i=i;run.start=t;const s=run.steps[i],p=run.p;run.end=t+s.d*1000;run.last=null;
